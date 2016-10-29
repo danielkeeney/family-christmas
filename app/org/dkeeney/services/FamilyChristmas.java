@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.dkeeney.models.AgeGroup.ADULT;
@@ -48,7 +49,7 @@ public class FamilyChristmas {
       Collections.shuffle(receivers, random);
     }
 
-    ret = assignAdultsRecursive(ret, givers, receivers);
+    ret = assignRecursive(ret, givers, receivers, this::validAdultGiftingPair);
 
     return ret;
   }
@@ -62,7 +63,7 @@ public class FamilyChristmas {
       Collections.shuffle(receivers, random);
     }
 
-    ret = assignChildrenRecursive(ret, givers, receivers);
+    ret = assignRecursive(ret, givers, receivers, this::validChildGiftingPair);
     return ret;
   }
 
@@ -78,20 +79,21 @@ public class FamilyChristmas {
         .collect(Collectors.toList());
   }
 
-  private Map<FamilyMember, FamilyMember> assignAdultsRecursive(
-      Map<FamilyMember, FamilyMember> results, List<FamilyMember> givers, List<FamilyMember> receivers) {
-    if (givers.isEmpty()) {
+  private Map<FamilyMember, FamilyMember> assignRecursive(
+      Map<FamilyMember, FamilyMember> results, List<FamilyMember> givers, List<FamilyMember> receivers,
+      BiFunction<FamilyMember, FamilyMember, Boolean> validPair) {
+    if (receivers.isEmpty()) {
       return results;
     }
-    FamilyMember giver = givers.get(0);
-    for (int i = 0; i < receivers.size(); i++) {
-      FamilyMember receiver = receivers.get(i);
-      if (validAdultGiftingPair(giver, receiver)) {
+    FamilyMember receiver = receivers.get(0);
+    for (int i = 0; i < givers.size(); i++) {
+      FamilyMember giver = givers.get(i);
+      if (validPair.apply(giver, receiver)) {
         Map<FamilyMember, FamilyMember> newResults = new HashMap<>(results);
         newResults.put(giver, receiver);
         List<FamilyMember> newGivers = removeMember(givers, giver);
         List<FamilyMember> newReceivers = removeMember(receivers, receiver);
-        Map<FamilyMember, FamilyMember> nextAttempt = assignAdultsRecursive(newResults, newGivers, newReceivers);
+        Map<FamilyMember, FamilyMember> nextAttempt = assignRecursive(newResults, newGivers, newReceivers, validPair);
         if (nextAttempt != null) {
           return nextAttempt;
         }
@@ -121,39 +123,17 @@ public class FamilyChristmas {
     return true;
   }
 
-  private List<FamilyMember> removeMember(List<FamilyMember> familyMembers, FamilyMember toRemove) {
-    return familyMembers.stream()
-        .filter(member -> !member.getShortName().equals(toRemove.getShortName()))
-        .collect(Collectors.toList());
-  }
-
-  private Map<FamilyMember, FamilyMember> assignChildrenRecursive(
-      Map<FamilyMember, FamilyMember> results, List<FamilyMember> givers, List<FamilyMember> receivers) {
-    if (receivers.isEmpty()) {
-      return results;
-    }
-    FamilyMember receiver = receivers.get(0);
-    for (int i = 0; i < givers.size(); i++) {
-      FamilyMember giver = givers.get(i);
-      if (validChildGiftingPair(giver, receiver)) {
-        Map<FamilyMember, FamilyMember> newResults = new HashMap<>(results);
-        newResults.put(giver, receiver);
-        List<FamilyMember> newGivers = removeMember(givers, giver);
-        List<FamilyMember> newReceivers = removeMember(receivers, receiver);
-        Map<FamilyMember, FamilyMember> nextAttempt = assignChildrenRecursive(newResults, newGivers, newReceivers);
-        if (nextAttempt != null) {
-          return nextAttempt;
-        }
-      }
-    }
-    return null;
-  }
-
   private boolean validChildGiftingPair(FamilyMember giver, FamilyMember receiver) {
     if (receiver.getParents().contains(giver.getShortName())) {
       // no parents giving to their own kids!
       return false;
     }
     return true;
+  }
+
+  private List<FamilyMember> removeMember(List<FamilyMember> familyMembers, FamilyMember toRemove) {
+    return familyMembers.stream()
+        .filter(member -> !member.getShortName().equals(toRemove.getShortName()))
+        .collect(Collectors.toList());
   }
 }
