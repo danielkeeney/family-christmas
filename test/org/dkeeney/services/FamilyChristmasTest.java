@@ -5,8 +5,10 @@ import org.dkeeney.injector.RandomModule;
 import org.dkeeney.models.FamilyMember;
 import org.junit.Before;
 import org.junit.Test;
+import play.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -23,7 +25,10 @@ public class FamilyChristmasTest {
   @Before
   public void before() throws IOException {
     FamilyDao familyDao = new FamilyDao();
-    familyChristmas = new FamilyChristmas(familyDao, new RandomModule().getConfiguredRandom());
+    familyChristmas = new FamilyChristmas(
+        familyDao,
+        new RandomModule().getConfiguredRandom(),
+        new Configuration(new HashMap<>()));
     adultExchange = familyChristmas.assignAdults();
   }
 
@@ -102,10 +107,9 @@ public class FamilyChristmasTest {
     repeatTest(100, () -> {
       adultExchange = familyChristmas.assignAdults();
 
-      adultExchange.forEach((giver, receiver) -> {
-        assertFalse(giver.getShortName() + " is giving to their parent " + receiver.getShortName(),
-            giver.getParents().contains(receiver.getShortName()));
-      });
+      adultExchange.forEach((giver, receiver) ->
+          assertFalse(giver.getShortName() + " is giving to their parent " + receiver.getShortName(),
+              giver.getParents().contains(receiver.getShortName())));
       assertAdultExchange(adultExchange);
       return null;
     });
@@ -113,13 +117,16 @@ public class FamilyChristmasTest {
 
   @Test
   public void testAssignChildrenHasCorrectAgeGroups() {
-    Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren();
-    assertEquals("Not all the children are receiving gifts", 9, childExchange.size());
-    childExchange.forEach((giver, receiver) -> {
-      assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup());
-      assertEquals("The receivers for child exchange should be children", CHILD, receiver.getAgeGroup());
-      assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
-          receiver.getParents().contains(giver.getShortName()));
+    repeatTest(100, () -> {
+      Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren();
+      assertEquals("Not all the children are receiving gifts", 9, childExchange.size());
+      childExchange.forEach((giver, receiver) -> {
+        assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup());
+        assertEquals("The receivers for child exchange should be children", CHILD, receiver.getAgeGroup());
+        assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
+            receiver.getParents().contains(giver.getShortName()));
+      });
+      return null;
     });
   }
 }

@@ -4,6 +4,7 @@ import org.dkeeney.dao.FamilyDao;
 import org.dkeeney.models.AgeGroup;
 import org.dkeeney.models.FamilyMember;
 import org.dkeeney.models.Gender;
+import play.Configuration;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -16,16 +17,18 @@ import java.util.stream.Collectors;
 
 import static org.dkeeney.models.AgeGroup.ADULT;
 import static org.dkeeney.models.AgeGroup.CHILD;
-import static org.dkeeney.models.Gender.*;
+import static org.dkeeney.models.Gender.FEMALE;
 
 public class FamilyChristmas {
   private final List<FamilyMember> familyMembers;
   private final Random random;
+  private final int entropy;
 
   @Inject
-  public FamilyChristmas(FamilyDao familyDao, Random random) throws IOException {
+  public FamilyChristmas(FamilyDao familyDao, Random random, Configuration config) throws IOException {
     familyMembers = familyDao.loadFamily();
     this.random = random;
+    entropy = config.getInt("christmas.entropy", 10);
   }
 
   public List<FamilyMember> filterAge(AgeGroup ageGroup) {
@@ -40,8 +43,10 @@ public class FamilyChristmas {
     Map<FamilyMember, FamilyMember> ret = new HashMap<>();
     List<FamilyMember> givers = filterAge(ADULT);
     List<FamilyMember> receivers = filterAge(ADULT);
-    Collections.shuffle(givers, random);
-    Collections.shuffle(receivers, random);
+    for (int i = 0; i < entropy; i++) {
+      Collections.shuffle(givers, random);
+      Collections.shuffle(receivers, random);
+    }
 
     ret = assignAdultsRecursive(ret, givers, receivers);
 
@@ -52,8 +57,10 @@ public class FamilyChristmas {
     Map<FamilyMember, FamilyMember> ret = new HashMap<>();
     List<FamilyMember> givers = filterAge(ADULT);
     List<FamilyMember> receivers = filterAge(CHILD);
-    Collections.shuffle(givers, random);
-    Collections.shuffle(receivers, random);
+    for (int i = 0; i < entropy; i++) {
+      Collections.shuffle(givers, random);
+      Collections.shuffle(receivers, random);
+    }
 
     ret = assignChildrenRecursive(ret, givers, receivers);
     return ret;
