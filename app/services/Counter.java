@@ -1,4 +1,4 @@
-package org.dkeeney.services;
+package services;
 
 /**
  * This interface demonstrates how to create a component that is injected

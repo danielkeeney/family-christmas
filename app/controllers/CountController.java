@@ -4,7 +4,7 @@ import javax.inject.*;
 
 import play.mvc.*;
 
-import org.dkeeney.services.Counter;
+import services.Counter;
 
 /**
  * This controller demonstrates how to use dependency injection to
