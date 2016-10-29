@@ -1,13 +1,13 @@
 package org.dkeeney.services;
 
 import org.dkeeney.dao.FamilyDao;
+import org.dkeeney.injector.RandomModule;
 import org.dkeeney.models.FamilyMember;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.Supplier;
 
 import static org.dkeeney.models.AgeGroup.ADULT;
@@ -23,7 +23,7 @@ public class FamilyChristmasTest {
   @Before
   public void before() throws IOException {
     FamilyDao familyDao = new FamilyDao();
-    familyChristmas = new FamilyChristmas(familyDao, new Random(3));
+    familyChristmas = new FamilyChristmas(familyDao, new RandomModule().getConfiguredRandom());
     adultExchange = familyChristmas.assignAdults();
   }
 
