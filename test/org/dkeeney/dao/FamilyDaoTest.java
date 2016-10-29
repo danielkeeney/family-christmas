@@ -6,10 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.dkeeney.models.AgeGroup.ADULT;
+import static org.dkeeney.models.AgeGroup.CHILD;
 import static org.junit.Assert.*;
 
 public class FamilyDaoTest {
@@ -60,5 +63,34 @@ public class FamilyDaoTest {
         .filter(member -> StringUtils.isNotBlank(member.getSpouse()))
         .forEach(member -> assertTrue("Spouse for " + member.getShortName() + " is not valid: " + member.getSpouse(),
             shortNames.contains(member.getSpouse())));
+  }
+
+  @Test
+  public void testParentConfigurationForChildren() {
+    Set<String> shortNames = getShortNames();
+    family.stream()
+        .filter(member -> CHILD == member.getAgeGroup())
+        .forEach(member -> {
+          assertNotNull(member.getShortName() + " has misconfigured parents", member.getParents());
+          assertEquals(member.getShortName() + " should have two parents", 2, member.getParents().size());
+          assertTrue(member.getShortName() + " has parents with mismatched short nameS",
+              shortNames.containsAll(member.getParents()));
+        });
+  }
+
+  @Test
+  public void testParentConfigurationForAdults() {
+    Set<String> shortNames = getShortNames();
+    List<String> adultsWithNoParents = Arrays.asList("Acha", "Vijaya", "Shekaran", "Kana", "Sakina", "Shanti",
+        "Ravi", "Valli", "Rathi", "Daniel");
+    family.stream()
+        .filter(member -> ADULT == member.getAgeGroup())
+        .filter(member -> !adultsWithNoParents.contains(member.getShortName()))
+        .forEach(member -> {
+          assertNotNull(member.getShortName() + " has misconfigured parents", member.getParents());
+          assertFalse(member.getShortName() + " should have at least one parent", member.getParents().isEmpty());
+          assertTrue(member.getShortName() + " has parents with mismatched short nameS",
+              shortNames.containsAll(member.getParents()));
+        });
   }
 }

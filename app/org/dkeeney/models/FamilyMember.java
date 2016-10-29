@@ -1,5 +1,10 @@
 package org.dkeeney.models;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class FamilyMember {
   private String firstName = "";
   private String lastName = "";
@@ -7,6 +12,7 @@ public class FamilyMember {
   private String spouse = "";
   private AgeGroup ageGroup;
   private Gender gender;
+  private List<String> parents = new ArrayList<>();
 
   public FamilyMember() {
   }
@@ -15,13 +21,15 @@ public class FamilyMember {
     this.shortName = shortName;
   }
 
-  public FamilyMember(String firstName, String lastName, String shortName, String spouse, AgeGroup ageGroup, Gender gender) {
+  public FamilyMember(String firstName, String lastName, String shortName, String spouse, AgeGroup ageGroup,
+                      Gender gender, List<String> parents) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.shortName = shortName;
     this.spouse = spouse;
     this.ageGroup = ageGroup;
     this.gender = gender;
+    this.parents = parents;
   }
 
   public String getFirstName() {
@@ -72,6 +80,14 @@ public class FamilyMember {
     this.gender = gender;
   }
 
+  public List<String> getParents() {
+    return parents;
+  }
+
+  public void setParents(List<String> parents) {
+    this.parents = parents;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -95,8 +111,9 @@ public class FamilyMember {
         ", \"lastName\":\"" + lastName + '\"' +
         ", \"shortName\":\"" + shortName + '\"' +
         ", \"spouse\":\"" + spouse + '\"' +
-        ", \"ageGroup\":\"" + ageGroup + '\"'+
-        ", \"gender\":\"" + gender + '\"'+
+        ", \"ageGroup\":\"" + ageGroup + '\"' +
+        ", \"gender\":\"" + gender + '\"' +
+        ", \"parents\":\"[\"" + StringUtils.join(parents, "\",\"") + "\"" +
         "}";
   }
 }

@@ -36,8 +36,10 @@ public class FamilyChristmasTest {
   private void assertAdultExchange(Map<FamilyMember, FamilyMember> adultExchange) {
     assertNotNull("Adult exchanges should be defined", adultExchange);
     assertEquals("Not all adults are giving gifts", 18, adultExchange.size());
-    adultExchange.forEach((giver, receiver) ->
-        assertEquals("Only adults should be involved in the adult exchange", ADULT, receiver.getAgeGroup()));
+    adultExchange.forEach((giver, receiver) -> {
+      assertEquals("Only adults should be giving in the adult exchange", ADULT, giver.getAgeGroup());
+      assertEquals("Only adults should be receiving in the adult exchange", ADULT, receiver.getAgeGroup());
+    });
   }
 
   @Test
@@ -72,9 +74,9 @@ public class FamilyChristmasTest {
       adultExchange = familyChristmas.assignAdults();
 
       adultExchange.forEach((giver, receiver) ->
-        assertNotEquals("Should not be giving to your spouse",
-            giver.getSpouse(),
-            receiver.getShortName()));
+          assertNotEquals("Should not be giving to your spouse",
+              giver.getSpouse(),
+              receiver.getShortName()));
       assertAdultExchange(adultExchange);
       return null;
     });
@@ -87,13 +89,37 @@ public class FamilyChristmasTest {
 
       adultExchange.entrySet().stream()
           .filter(entry -> entry.getKey().getShortName().equals("Acha"))
-          .forEach(entry -> {
-            assertEquals("Subramaniam should be gifting men",
-                MALE,
-                entry.getValue().getGender());
-          });
+          .forEach(entry -> assertEquals("Subramaniam should be gifting men",
+              MALE,
+              entry.getValue().getGender()));
       assertAdultExchange(adultExchange);
       return null;
+    });
+  }
+
+  @Test
+  public void testAssignAdultsHasNoParentalGiving() {
+    repeatTest(100, () -> {
+      adultExchange = familyChristmas.assignAdults();
+
+      adultExchange.forEach((giver, receiver) -> {
+        assertFalse(giver.getShortName() + " is giving to their parent " + receiver.getShortName(),
+            giver.getParents().contains(receiver.getShortName()));
+      });
+      assertAdultExchange(adultExchange);
+      return null;
+    });
+  }
+
+  @Test
+  public void testAssignChildrenHasCorrectAgeGroups() {
+    Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren();
+    assertEquals("Not all the children are receiving gifts", 9, childExchange.size());
+    childExchange.forEach((giver, receiver) -> {
+      assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup());
+      assertEquals("The receivers for child exchange should be children", CHILD, receiver.getAgeGroup());
+      assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
+          receiver.getParents().contains(giver.getShortName()));
     });
   }
 }

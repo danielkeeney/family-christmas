@@ -4,7 +4,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -18,6 +20,7 @@ public class FamilyMemberTest {
   private String spouse;
   private AgeGroup ageGroup;
   private Gender gender;
+  private List<String> parents;
 
   @Before
   public void before() {
@@ -27,6 +30,7 @@ public class FamilyMemberTest {
     spouse = RandomStringUtils.randomAlphabetic(10);
     ageGroup = random.nextBoolean() ? AgeGroup.ADULT : AgeGroup.CHILD;
     gender = random.nextBoolean() ? Gender.FEMALE : Gender.MALE;
+    parents = Arrays.asList(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10));
   }
 
   private void assertFamilyMember(FamilyMember familyMember) {
@@ -36,6 +40,7 @@ public class FamilyMemberTest {
     assertEquals("Wrong short name", shortName, familyMember.getShortName());
     assertEquals("Wrong spouse", spouse, familyMember.getSpouse());
     assertEquals("Wrong gender", gender, familyMember.getGender());
+    assertEquals("Wrong parents", parents, familyMember.getParents());
   }
 
   @Test
@@ -47,20 +52,21 @@ public class FamilyMemberTest {
     familyMember.setShortName(shortName);
     familyMember.setSpouse(spouse);
     familyMember.setGender(gender);
+    familyMember.setParents(parents);
 
     assertFamilyMember(familyMember);
   }
 
   @Test
   public void testConstructor() {
-    FamilyMember familyMember = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender);
+    FamilyMember familyMember = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender, parents);
 
     assertFamilyMember(familyMember);
   }
 
   @Test
   public void testEquals() {
-    FamilyMember familyMember1 = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender);
+    FamilyMember familyMember1 = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender, parents);
     FamilyMember familyMember2 = new FamilyMember(shortName);
 
     assertEquals("Equals function should only use short name", familyMember1, familyMember2);
@@ -69,7 +75,7 @@ public class FamilyMemberTest {
 
   @Test
   public void testMapKeyUse() {
-    FamilyMember familyMember1 = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender);
+    FamilyMember familyMember1 = new FamilyMember(firstName, lastName, shortName, spouse, ageGroup, gender, parents);
     FamilyMember familyMember2 = new FamilyMember(shortName);
 
     Map<FamilyMember, String> map = new HashMap<>();
