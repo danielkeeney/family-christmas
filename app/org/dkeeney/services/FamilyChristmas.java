@@ -4,6 +4,8 @@ import org.dkeeney.dao.FamilyDao;
 import org.dkeeney.models.AgeGroup;
 import org.dkeeney.models.FamilyMember;
 import org.dkeeney.models.Gender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.Configuration;
 
 import javax.inject.Inject;
@@ -21,6 +23,7 @@ import static org.dkeeney.models.AgeGroup.CHILD;
 import static org.dkeeney.models.Gender.FEMALE;
 
 public class FamilyChristmas {
+  private static final Logger LOGGER = LoggerFactory.getLogger(FamilyChristmas.class);
   private final List<FamilyMember> familyMembers;
   private final Random random;
   private final int entropy;
@@ -104,27 +107,31 @@ public class FamilyChristmas {
 
   private boolean validAdultGiftingPair(FamilyMember giver, FamilyMember receiver) {
     if (giver.getShortName().equals(receiver.getShortName())) {
+      LOGGER.debug("Preventing {} from giving to themselves", giver.getShortName());
       // no self giving!
       return false;
     }
     if (giver.getSpouse().equals(receiver.getShortName())) {
+      LOGGER.debug("Preventing {} from giving to their spouse {}", giver.getShortName(), receiver.getShortName());
       // no giving to your spouse!
       return false;
     }
     if (giver.getShortName().equals("Acha") && receiver.getGender() == FEMALE) {
+      LOGGER.debug("Preventing Acha from giving to {}", receiver.getShortName());
       // let's make it easier for him
       return false;
     }
     if (giver.getParents().contains(receiver.getShortName())) {
+      LOGGER.debug("Preventing {} from giving to their parent {}", giver.getShortName(), receiver.getShortName());
       // giving to your parents is too easy!
       return false;
     }
-
-    return true;
+    return validChildGiftingPair(giver, receiver);
   }
 
   private boolean validChildGiftingPair(FamilyMember giver, FamilyMember receiver) {
     if (receiver.getParents().contains(giver.getShortName())) {
+      LOGGER.debug("Preventing {} from giving to their child {}", giver.getShortName(), receiver.getShortName());
       // no parents giving to their own kids!
       return false;
     }

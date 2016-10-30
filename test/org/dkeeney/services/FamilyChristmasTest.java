@@ -116,6 +116,19 @@ public class FamilyChristmasTest {
   }
 
   @Test
+  public void testAssignAdultsHasNoChildGiving() {
+    repeatTest(1, () -> {
+      adultExchange = familyChristmas.assignAdults();
+
+      adultExchange.forEach((giver, receiver) ->
+          assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
+              receiver.getParents().contains(giver.getShortName())));
+      assertAdultExchange(adultExchange);
+      return null;
+    });
+  }
+
+  @Test
   public void testAssignChildrenHasCorrectAgeGroups() {
     repeatTest(100, () -> {
       Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren();
