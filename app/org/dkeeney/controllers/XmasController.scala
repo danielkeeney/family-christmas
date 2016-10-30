@@ -1,10 +1,9 @@
 package org.dkeeney.controllers
 
-import java.util
 import javax.inject.Inject
 
 import org.dkeeney.models.FamilyMember
-import org.dkeeney.services.{LoginService, PersistenceService}
+import org.dkeeney.services.{AccessControlService, LoginService, PersistenceService}
 import play.api.mvc.{Action, Controller}
 import views.html._
 
@@ -12,7 +11,9 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Random
 
-class XmasController @Inject()(familyChristmas: PersistenceService, loginService: LoginService)
+class XmasController @Inject()(familyChristmas: PersistenceService,
+                               loginService: LoginService,
+                               accessControlService: AccessControlService)
   extends Controller {
   def loginView = Action { request =>
     Ok(login.render(""))
@@ -60,17 +61,18 @@ class XmasController @Inject()(familyChristmas: PersistenceService, loginService
       user =>
         val adults: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getAdultExchange.asScala
         val children: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getChildrenExchange.asScala
-        if (user.equalsIgnoreCase("daniel")) {
+        val isSuperUser = accessControlService.isSuperUser(user)
+        if (isSuperUser) {
           Ok(results.render(
             adults,
             children,
-            true
+            isSuperUser
           ))
         } else {
           Ok(results.render(
             adults.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
             children.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
-            false
+            isSuperUser
           ))
         }
     }.getOrElse {
@@ -81,12 +83,13 @@ class XmasController @Inject()(familyChristmas: PersistenceService, loginService
   def random = Action { request =>
     request.session.get("user").map {
       user =>
-        if (user.equalsIgnoreCase("daniel")) {
+        val isSuperUser = accessControlService.isSuperUser(user)
+        if (isSuperUser) {
           val random = new Random
           Ok(results.render(
             familyChristmas.getAdultExchange(random.nextInt).asScala,
             familyChristmas.getChildrenExchange(random.nextInt).asScala,
-            true
+            isSuperUser
           ))
         } else {
           Redirect("/view")
