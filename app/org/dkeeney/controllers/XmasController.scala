@@ -2,18 +2,16 @@ package org.dkeeney.controllers
 
 import javax.inject.Inject
 
-import org.dkeeney.models.FamilyMember
-import org.dkeeney.services.{AccessControlService, LoginService, PersistenceService}
+import org.dkeeney.services.{AccessControlService, FrontEndService, LoginService, PersistenceService}
 import play.api.mvc.{Action, Controller}
 import views.html._
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.util.Random
 
 class XmasController @Inject()(familyChristmas: PersistenceService,
                                loginService: LoginService,
-                               accessControlService: AccessControlService)
+                               accessControlService: AccessControlService,
+                               frontEndService: FrontEndService)
   extends Controller {
   def loginView = Action { request =>
     Ok(login.render(""))
@@ -59,19 +57,19 @@ class XmasController @Inject()(familyChristmas: PersistenceService,
   def view = Action { request =>
     request.session.get("user").map {
       user =>
-        val adults: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getAdultExchange.asScala
-        val children: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getChildrenExchange.asScala
+        val adults = familyChristmas.getAdultExchange
+        val children = familyChristmas.getChildrenExchange
         val isSuperUser = accessControlService.isSuperUser(user)
         if (isSuperUser) {
           Ok(results.render(
-            adults,
-            children,
+            frontEndService.prepareForDisplay(adults),
+            frontEndService.prepareForDisplay(children),
             isSuperUser
           ))
         } else {
           Ok(results.render(
-            adults.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
-            children.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
+            frontEndService.prepareForDisplay(frontEndService.filterResults(adults, user)),
+            frontEndService.prepareForDisplay(frontEndService.filterResults(children, user)),
             isSuperUser
           ))
         }
@@ -87,8 +85,8 @@ class XmasController @Inject()(familyChristmas: PersistenceService,
         if (isSuperUser) {
           val random = new Random
           Ok(results.render(
-            familyChristmas.getAdultExchange(random.nextInt).asScala,
-            familyChristmas.getChildrenExchange(random.nextInt).asScala,
+            frontEndService.prepareForDisplay(familyChristmas.getAdultExchange(random.nextInt)),
+            frontEndService.prepareForDisplay(familyChristmas.getChildrenExchange(random.nextInt)),
             isSuperUser
           ))
         } else {

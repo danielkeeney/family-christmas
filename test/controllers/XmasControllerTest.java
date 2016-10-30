@@ -55,7 +55,7 @@ public class XmasControllerTest extends WithApplication {
     RequestBuilder requestBuilder = fakeRequest()
         .method("GET").path("/view");
     Result response = route(requestBuilder);
-    assertEquals("Should reject a view request without authorization", 401, response.status());
+    assertEquals("Should reject a view request without authorization", 303, response.status());
   }
 
   @Test
