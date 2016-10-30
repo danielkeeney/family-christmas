@@ -22,7 +22,7 @@ public class FamilyDaoTest {
   @Before
   public void before() throws IOException {
     familyDao = new FamilyDao();
-    family = familyDao.loadFamily();
+    family = familyDao.getFamily();
   }
 
   private Set<String> getShortNames() {

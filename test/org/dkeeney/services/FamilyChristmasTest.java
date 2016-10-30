@@ -117,7 +117,7 @@ public class FamilyChristmasTest {
 
   @Test
   public void testAssignAdultsHasNoChildGiving() {
-    repeatTest(1, () -> {
+    repeatTest(100, () -> {
       adultExchange = familyChristmas.assignAdults();
 
       adultExchange.forEach((giver, receiver) ->

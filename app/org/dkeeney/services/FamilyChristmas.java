@@ -30,7 +30,7 @@ public class FamilyChristmas {
 
   @Inject
   public FamilyChristmas(FamilyDao familyDao, Random random, Configuration config) throws IOException {
-    familyMembers = familyDao.loadFamily();
+    familyMembers = familyDao.getFamily();
     this.random = random;
     entropy = config.getInt("christmas.entropy", 10);
   }

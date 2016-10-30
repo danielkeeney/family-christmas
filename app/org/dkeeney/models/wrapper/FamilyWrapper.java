@@ -1,6 +1,7 @@
-package org.dkeeney.models;
+package org.dkeeney.models.wrapper;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.dkeeney.models.FamilyMember;
 
 import java.util.List;
 
