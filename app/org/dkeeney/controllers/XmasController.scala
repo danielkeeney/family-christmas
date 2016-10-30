@@ -10,6 +10,7 @@ import views.html._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Random
 
 class XmasController @Inject()(familyChristmas: PersistenceService, loginService: LoginService)
   extends Controller {
@@ -62,15 +63,36 @@ class XmasController @Inject()(familyChristmas: PersistenceService, loginService
         if (user.equalsIgnoreCase("daniel")) {
           Ok(results.render(
             adults,
-            children
+            children,
+            true
           ))
         } else {
-        Ok(results.render(
-          adults.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
-          children.filter(member => member._1.getShortName.equalsIgnoreCase(user))));
+          Ok(results.render(
+            adults.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
+            children.filter(member => member._1.getShortName.equalsIgnoreCase(user)),
+            false
+          ))
         }
     }.getOrElse {
       Redirect("/").withNewSession
+    }
+  }
+
+  def random = Action { request =>
+    request.session.get("user").map {
+      user =>
+        if (user.equalsIgnoreCase("daniel")) {
+          val random = new Random
+          Ok(results.render(
+            familyChristmas.getAdultExchange(random.nextInt).asScala,
+            familyChristmas.getChildrenExchange(random.nextInt).asScala,
+            true
+          ))
+        } else {
+          Redirect("/view")
+        }
+    }.getOrElse{
+      Redirect("/view")
     }
   }
 

@@ -14,6 +14,7 @@ POST    /login                      org.dkeeney.controllers.XmasController.login
 GET     /register                   org.dkeeney.controllers.XmasController.registerView
 POST    /register                   org.dkeeney.controllers.XmasController.registerAction
 GET     /view                       org.dkeeney.controllers.XmasController.view
+POST    /random                     org.dkeeney.controllers.XmasController.random
 GET     /logout                     org.dkeeney.controllers.XmasController.logout
 
 # Map static resources from the /public folder to the /assets URL path
