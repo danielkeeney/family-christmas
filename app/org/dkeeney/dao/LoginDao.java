@@ -47,7 +47,6 @@ public class LoginDao {
   public LoginDao(String filePath) {
     this.saveLocation = filePath;
     this.objectMapper = new ObjectMapper();
-    this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     load();
   }
 
