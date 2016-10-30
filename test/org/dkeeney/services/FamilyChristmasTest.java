@@ -1,5 +1,6 @@
 package org.dkeeney.services;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dkeeney.dao.FamilyDao;
 import org.dkeeney.models.FamilyMember;
 import org.junit.Before;
@@ -7,10 +8,14 @@ import org.junit.Test;
 import play.Configuration;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.dkeeney.models.AgeGroup.ADULT;
 import static org.dkeeney.models.AgeGroup.CHILD;
@@ -20,7 +25,7 @@ import static org.junit.Assert.*;
 
 public class FamilyChristmasTest {
   private FamilyChristmas familyChristmas;
-  private Map<FamilyMember, FamilyMember> adultExchange;
+  private Map<List<FamilyMember>, FamilyMember> adultExchange;
   private Random random = new Random();
 
   @Before
@@ -38,11 +43,25 @@ public class FamilyChristmasTest {
     }
   }
 
-  private void assertAdultExchange(Map<FamilyMember, FamilyMember> adultExchange) {
+  private List<String> groupToProperty(List<FamilyMember> group, Function<FamilyMember, String> mapper) {
+    return group.stream().map(mapper).collect(Collectors.toList());
+  }
+
+  private String groupToString(List<FamilyMember> group) {
+    return StringUtils.join(
+        group.stream()
+            .map(FamilyMember::getShortName)
+            .collect(Collectors.toList()),
+        ", ");
+  }
+
+  private void assertAdultExchange(Map<List<FamilyMember>, FamilyMember> adultExchange) {
     assertNotNull("Adult exchanges should be defined", adultExchange);
     assertEquals("Not all adults are giving gifts", 18, adultExchange.size());
-    adultExchange.forEach((giver, receiver) -> {
-      assertEquals("Only adults should be giving in the adult exchange", ADULT, giver.getAgeGroup());
+    adultExchange.forEach((givers, receiver) -> {
+      givers.forEach(giver ->
+          assertEquals("Only adults should be giving in the adult exchange", ADULT, giver.getAgeGroup())
+      );
       assertEquals("Only adults should be receiving in the adult exchange", ADULT, receiver.getAgeGroup());
     });
   }
@@ -79,9 +98,8 @@ public class FamilyChristmasTest {
       adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.forEach((giver, receiver) ->
-          assertNotEquals("Should not be giving to your spouse",
-              giver.getSpouse(),
-              receiver.getShortName()));
+          assertFalse("Should not be giving to your spouse: " + groupToString(giver),
+              groupToProperty(giver, FamilyMember::getSpouse).contains(receiver.getShortName())));
       assertAdultExchange(adultExchange);
       return null;
     });
@@ -93,7 +111,7 @@ public class FamilyChristmasTest {
       adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.entrySet().stream()
-          .filter(entry -> entry.getKey().getShortName().equals("Acha"))
+          .filter(entry -> entry.getKey().contains(new FamilyMember("Acha")))
           .forEach(entry -> assertEquals("Subramaniam should be gifting men",
               MALE,
               entry.getValue().getGender()));
@@ -107,9 +125,13 @@ public class FamilyChristmasTest {
     repeatTest(100, () -> {
       adultExchange = familyChristmas.assignAdults(random);
 
-      adultExchange.forEach((giver, receiver) ->
-          assertFalse(giver.getShortName() + " is giving to their parent " + receiver.getShortName(),
-              giver.getParents().contains(receiver.getShortName())));
+      adultExchange.forEach((giver, receiver) -> {
+        List<String> giversParents = giver.stream()
+            .flatMap(person -> person.getParents().stream())
+            .collect(Collectors.toList());
+        assertFalse(groupToString(giver) + " is giving to their parent " + receiver.getShortName(),
+            giversParents.contains(receiver.getShortName()));
+      });
       assertAdultExchange(adultExchange);
       return null;
     });
@@ -120,9 +142,12 @@ public class FamilyChristmasTest {
     repeatTest(100, () -> {
       adultExchange = familyChristmas.assignAdults(random);
 
-      adultExchange.forEach((giver, receiver) ->
-          assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
-              receiver.getParents().contains(giver.getShortName())));
+      adultExchange.forEach((giver, receiver) -> {
+        List<String> newParents = new ArrayList<>(receiver.getParents());
+        newParents.retainAll(groupToProperty(giver, FamilyMember::getShortName));
+        assertTrue(receiver.getShortName() + " is getting a gift from their parent " + groupToString(giver),
+            newParents.isEmpty());
+      });
       assertAdultExchange(adultExchange);
       return null;
     });
@@ -131,13 +156,16 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignChildrenHasCorrectAgeGroups() {
     repeatTest(100, () -> {
-      Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren(random);
+      Map<List<FamilyMember>, FamilyMember> childExchange = familyChristmas.assignChildren(random);
       assertEquals("Not all the children are receiving gifts", 9, childExchange.size());
-      childExchange.forEach((giver, receiver) -> {
-        assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup());
+      childExchange.forEach((givers, receiver) -> {
+        givers.forEach(giver ->
+            assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup()));
         assertEquals("The receivers for child exchange should be children", CHILD, receiver.getAgeGroup());
-        assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
-            receiver.getParents().contains(giver.getShortName()));
+        List<String> newParents = new ArrayList<>(receiver.getParents());
+        newParents.retainAll(groupToProperty(givers, FamilyMember::getShortName));
+        assertTrue(receiver.getShortName() + " is getting a gift from their parent " + groupToString(givers),
+            newParents.isEmpty());
       });
       return null;
     });

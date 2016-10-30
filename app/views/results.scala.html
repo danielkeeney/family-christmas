@@ -1,8 +1,9 @@
 @import org.dkeeney.models.FamilyMember
-@import scala.collection.mutable.Map
+@import java.util.List
+@import java.util.Map
 
-@(adult: Map[FamilyMember, FamilyMember],
-  child: Map[FamilyMember, FamilyMember],
+@(adult: Map[String, String],
+  child: Map[String, String],
   master: Boolean)
 
 <!DOCTYPE html>
@@ -17,7 +18,7 @@
         <h4>Adult Gift Exchange</h4>
         <ul>
             @for(pair <- adult) {
-              <li>@pair._1.getShortName -> @pair._2.getShortName</li>
+              <li>@pair._1 -> @pair._2</li>
             }
         </ul>
         <h4>Child Gift Exchange</h4>
@@ -26,7 +27,7 @@
               <p>You're not assigned to any children this year.</p>
             } else {
               @for(pair <- child) {
-                <li>@pair._1.getShortName -> @pair._2.getShortName</li>
+                <li>@pair._1 -> @pair._2</li>
               }
             }
         </ul>

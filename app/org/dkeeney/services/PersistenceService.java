@@ -4,6 +4,7 @@ import org.dkeeney.models.FamilyMember;
 import org.joda.time.DateTime;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,19 +16,19 @@ public class PersistenceService {
     this.familyChristmas = familyChristmas;
   }
 
-  public Map<FamilyMember, FamilyMember> getAdultExchange() {
+  public Map<List<FamilyMember>, FamilyMember> getAdultExchange() {
     return getAdultExchange(DateTime.now().getYear());
   }
 
-  public Map<FamilyMember, FamilyMember> getAdultExchange(int seed) {
+  public Map<List<FamilyMember>, FamilyMember> getAdultExchange(int seed) {
     return familyChristmas.assignAdults(new Random(seed));
   }
 
-  public Map<FamilyMember, FamilyMember> getChildrenExchange() {
+  public Map<List<FamilyMember>, FamilyMember> getChildrenExchange() {
     return getChildrenExchange(DateTime.now().getYear());
   }
 
-  public Map<FamilyMember, FamilyMember> getChildrenExchange(int seed) {
+  public Map<List<FamilyMember>, FamilyMember> getChildrenExchange(int seed) {
     return familyChristmas.assignChildren(new Random(seed));
   }
 }
