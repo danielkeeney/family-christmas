@@ -2,6 +2,7 @@ package controllers;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
@@ -15,9 +16,25 @@ import static play.test.Helpers.fakeRequest;
 import static play.test.Helpers.route;
 
 public class XmasControllerTest extends WithApplication {
+  @Before
+  public void before() {
+    route(fakeRequest()
+        .method("POST")
+        .path("/register")
+        .bodyForm(new ImmutableMap.Builder<String, String>()
+            .put("user", "daniel")
+            .put("password", "asdf")
+            .put("repeat", "asdf")
+            .build())
+    );
+  }
+
   private Result successfulLoginAttempt() {
     RequestBuilder requestBuilder = fakeRequest()
-        .method("POST").path("/login").bodyForm(new ImmutableMap.Builder<String, String>().build());
+        .method("POST").path("/login").bodyForm(new ImmutableMap.Builder<String, String>()
+            .put("user", "daniel")
+            .put("password", "asdf")
+            .build());
     return route(requestBuilder);
   }
 

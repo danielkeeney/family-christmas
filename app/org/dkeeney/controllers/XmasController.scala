@@ -4,14 +4,14 @@ import java.util
 import javax.inject.Inject
 
 import org.dkeeney.models.FamilyMember
-import org.dkeeney.services.{FamilyChristmas, LoginService}
+import org.dkeeney.services.{LoginService, PersistenceService}
 import play.api.mvc.{Action, Controller}
 import views.html._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class XmasController @Inject()(familyChristmas: FamilyChristmas, loginService: LoginService)
+class XmasController @Inject()(familyChristmas: PersistenceService, loginService: LoginService)
   extends Controller {
   def loginView = Action { request =>
     Ok(login.render(""))
@@ -57,8 +57,8 @@ class XmasController @Inject()(familyChristmas: FamilyChristmas, loginService: L
   def view = Action { request =>
     request.session.get("user").map {
       user =>
-        val adults: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.assignAdults.asScala
-        val children: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.assignChildren.asScala
+        val adults: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getAdultExchange.asScala
+        val children: mutable.Map[FamilyMember, FamilyMember] = familyChristmas.getChildrenExchange.asScala
         if (user.equalsIgnoreCase("daniel")) {
           Ok(results.render(
             adults,
@@ -70,7 +70,7 @@ class XmasController @Inject()(familyChristmas: FamilyChristmas, loginService: L
           children.filter(member => member._1.getShortName.equalsIgnoreCase(user))));
         }
     }.getOrElse {
-      Unauthorized("/login").withNewSession
+      Redirect("/").withNewSession
     }
   }
 

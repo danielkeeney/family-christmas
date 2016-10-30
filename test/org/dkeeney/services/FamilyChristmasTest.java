@@ -1,7 +1,6 @@
 package org.dkeeney.services;
 
 import org.dkeeney.dao.FamilyDao;
-import org.dkeeney.injector.RandomModule;
 import org.dkeeney.models.FamilyMember;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +9,7 @@ import play.Configuration;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.function.Supplier;
 
 import static org.dkeeney.models.AgeGroup.ADULT;
@@ -21,15 +21,15 @@ import static org.junit.Assert.*;
 public class FamilyChristmasTest {
   private FamilyChristmas familyChristmas;
   private Map<FamilyMember, FamilyMember> adultExchange;
+  private Random random = new Random();
 
   @Before
   public void before() throws IOException {
     FamilyDao familyDao = new FamilyDao();
     familyChristmas = new FamilyChristmas(
         familyDao,
-        new RandomModule().getConfiguredRandom(),
         new Configuration(new HashMap<>()));
-    adultExchange = familyChristmas.assignAdults();
+    adultExchange = familyChristmas.assignAdults(random);
   }
 
   private void repeatTest(int repeats, Supplier<Void> test) {
@@ -62,7 +62,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignAdultsHasNoSelfGiving() {
     repeatTest(100, () -> {
-      adultExchange = familyChristmas.assignAdults();
+      adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.forEach((giver, receiver) ->
           assertNotEquals("Should not be giving gifts to yourself",
@@ -76,7 +76,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignAdultsHasNoSpouseGiving() {
     repeatTest(100, () -> {
-      adultExchange = familyChristmas.assignAdults();
+      adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.forEach((giver, receiver) ->
           assertNotEquals("Should not be giving to your spouse",
@@ -90,7 +90,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignAdultsGivesAchaMaleRecipient() {
     repeatTest(100, () -> {
-      adultExchange = familyChristmas.assignAdults();
+      adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.entrySet().stream()
           .filter(entry -> entry.getKey().getShortName().equals("Acha"))
@@ -105,7 +105,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignAdultsHasNoParentalGiving() {
     repeatTest(100, () -> {
-      adultExchange = familyChristmas.assignAdults();
+      adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.forEach((giver, receiver) ->
           assertFalse(giver.getShortName() + " is giving to their parent " + receiver.getShortName(),
@@ -118,7 +118,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignAdultsHasNoChildGiving() {
     repeatTest(100, () -> {
-      adultExchange = familyChristmas.assignAdults();
+      adultExchange = familyChristmas.assignAdults(random);
 
       adultExchange.forEach((giver, receiver) ->
           assertFalse(receiver.getShortName() + " is getting a gift from their parent " + giver.getShortName(),
@@ -131,7 +131,7 @@ public class FamilyChristmasTest {
   @Test
   public void testAssignChildrenHasCorrectAgeGroups() {
     repeatTest(100, () -> {
-      Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren();
+      Map<FamilyMember, FamilyMember> childExchange = familyChristmas.assignChildren(random);
       assertEquals("Not all the children are receiving gifts", 9, childExchange.size());
       childExchange.forEach((giver, receiver) -> {
         assertEquals("The givers for child exchange should be adults", ADULT, giver.getAgeGroup());

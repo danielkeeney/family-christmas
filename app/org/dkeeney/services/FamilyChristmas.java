@@ -25,13 +25,11 @@ import static org.dkeeney.models.Gender.FEMALE;
 public class FamilyChristmas {
   private static final Logger LOGGER = LoggerFactory.getLogger(FamilyChristmas.class);
   private final List<FamilyMember> familyMembers;
-  private final Random random;
   private final int entropy;
 
   @Inject
-  public FamilyChristmas(FamilyDao familyDao, Random random, Configuration config) throws IOException {
+  public FamilyChristmas(FamilyDao familyDao, Configuration config) throws IOException {
     familyMembers = familyDao.getFamily();
-    this.random = random;
     entropy = config.getInt("christmas.entropy", 10);
   }
 
@@ -43,7 +41,7 @@ public class FamilyChristmas {
     return filterGender(gender, familyMembers);
   }
 
-  public Map<FamilyMember, FamilyMember> assignAdults() {
+  public Map<FamilyMember, FamilyMember> assignAdults(Random random) {
     Map<FamilyMember, FamilyMember> ret = new HashMap<>();
     List<FamilyMember> givers = filterAge(ADULT);
     List<FamilyMember> receivers = filterAge(ADULT);
@@ -57,7 +55,7 @@ public class FamilyChristmas {
     return ret;
   }
 
-  public Map<FamilyMember, FamilyMember> assignChildren() {
+  public Map<FamilyMember, FamilyMember> assignChildren(Random random) {
     Map<FamilyMember, FamilyMember> ret = new HashMap<>();
     List<FamilyMember> givers = filterAge(ADULT);
     List<FamilyMember> receivers = filterAge(CHILD);
